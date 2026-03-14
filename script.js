@@ -195,7 +195,7 @@ function loadOrdersDashboard(){
       <div class="order-card" id="order-${o.id}">
         <p><strong>${o.name}</strong> | ${o.phone} | ${o.location}</p>
         <p>🛒 ${items}</p>
-        <p>💰 Total: Ksh ${o.total}</p>
+        <p>Total: Ksh ${o.total}</p>
         <p>Status: <span id="status-${o.id}">${o.status}</span></p>
         <button onclick="toggleOrderStatus('${o.id}')">Toggle Status</button>
         <p style="color:gray;font-size:0.8rem;">Order ID: ${o.id}</p>
@@ -245,7 +245,7 @@ function setupPrescriptionPreview(){
       reader.onload = e => preview.innerHTML = `<img src="${e.target.result}" style="max-width:200px">`;
       reader.readAsDataURL(file);
     } else if(file){
-      preview.innerHTML = `<p>📄 ${file.name}</p>`;
+      preview.innerHTML = `<p>${file.name}</p>`;
     } else preview.innerHTML = '';
   });
                      }
