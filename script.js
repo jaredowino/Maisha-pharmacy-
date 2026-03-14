@@ -1,11 +1,15 @@
+// ─── UTILITY ─────────────────────────────────────────────
+function $(id){ return document.getElementById(id); }
+function $$(selector){ return document.querySelectorAll(selector); }
+
 // ─── STORE ─────────────────────────────────────────────
 var Store = {
   getProducts: () => JSON.parse(localStorage.getItem('products') || '[]'),
-  saveProducts: (d) => localStorage.setItem('products', JSON.stringify(d)),
+  saveProducts: d => localStorage.setItem('products', JSON.stringify(d)),
   getOrders: () => JSON.parse(localStorage.getItem('orders') || '[]'),
-  saveOrders: (d) => localStorage.setItem('orders', JSON.stringify(d)),
+  saveOrders: d => localStorage.setItem('orders', JSON.stringify(d)),
   getGallery: () => JSON.parse(localStorage.getItem('gallery') || '[]'),
-  saveGallery: (d) => localStorage.setItem('gallery', JSON.stringify(d)),
+  saveGallery: d => localStorage.setItem('gallery', JSON.stringify(d)),
 };
 
 // ─── DEFAULT DATA ─────────────────────────────────────────────
@@ -20,38 +24,56 @@ var DEFAULT_GALLERY = [
   {id:'g02',url:'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=400&q=80',caption:'Wide range of medicines'},
 ];
 
+// ─── CART ─────────────────────────────────────────────
+let cart = JSON.parse(localStorage.getItem("cart"))||[];
+
 // ─── INIT ─────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function(){
   if(Store.getProducts().length===0) Store.saveProducts(DEFAULT_PRODUCTS);
   if(Store.getGallery().length===0) Store.saveGallery(DEFAULT_GALLERY);
+
   buildCategoryFilter();
   displayProducts('All');
   loadGallery();
   updateCartUI();
   loadOrdersDashboard();
+  setupPrescriptionPreview();
 });
 
 // ─── CATEGORY FILTER ─────────────────────────────
 function buildCategoryFilter(){
-  var container = document.getElementById('categoryFilter');
+  let container = $('categoryFilter');
+  if(!container) return;
   container.innerHTML = '';
-  var products = Store.getProducts();
-  var categories = ['All', ...new Set(products.map(p=>p.category))];
+  let products = Store.getProducts();
+  let categories = ['All', ...new Set(products.map(p=>p.category))];
+
   categories.forEach((cat,i)=>{
     let btn=document.createElement('button');
     btn.textContent=cat;
     btn.className='cat-btn'+(i===0?' active':'');
-    btn.onclick = () => { document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); displayProducts(cat);}
+    btn.onclick = ()=>{
+      $$('.cat-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      displayProducts(cat);
+    }
     container.appendChild(btn);
   });
 }
 
 // ─── DISPLAY PRODUCTS ─────────────────────────────
 function displayProducts(category){
-  let container=document.getElementById('productContainer');
+  let container=$('productContainer');
+  if(!container) return;
   let products = Store.getProducts();
   container.innerHTML='';
   let filtered = (category==='All')?products:products.filter(p=>p.category===category);
+
+  if(filtered.length===0){
+    container.innerHTML='<p style="color:gray">No products found.</p>';
+    return;
+  }
+
   filtered.forEach(p=>{
     container.innerHTML += `
       <div class="product">
@@ -67,12 +89,14 @@ function displayProducts(category){
 
 // ─── SEARCH ─────────────────────────────
 function searchProducts(){
-  let query = document.getElementById('searchInput').value.toLowerCase();
-  displayProducts('All');
-  if(query==='') return;
-  let products = Store.getProducts().filter(p=>p.name.toLowerCase().includes(query)||p.category.toLowerCase().includes(query));
-  let container=document.getElementById('productContainer');
-  container.innerHTML='';
+  let query = ($('searchInput')?.value || '').toLowerCase();
+  let products = Store.getProducts().filter(p=>
+    p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query)
+  );
+  let container = $('productContainer');
+  if(!container) return;
+  container.innerHTML = '';
+  if(products.length===0){ container.innerHTML='<p style="color:gray">No products found.</p>'; return; }
   products.forEach(p=>{
     container.innerHTML += `
       <div class="product">
@@ -86,29 +110,31 @@ function searchProducts(){
   });
 }
 
-// ─── CART ─────────────────────────────
-let cart = JSON.parse(localStorage.getItem("cart"))||[];
-
+// ─── CART FUNCTIONS ─────────────────────────────
 function addToCart(name,price){
   let item = cart.find(i=>i.name===name);
   if(item) item.qty++;
   else cart.push({name:name,price:price,qty:1});
   saveCart(); updateCartUI();
 }
-
 function saveCart(){ localStorage.setItem("cart",JSON.stringify(cart)); }
 function increaseQty(i){ cart[i].qty++; saveCart(); updateCartUI(); }
 function decreaseQty(i){ cart[i].qty>1?cart[i].qty--:cart.splice(i,1); saveCart(); updateCartUI(); }
 function removeItem(i){ cart.splice(i,1); saveCart(); updateCartUI(); }
 
 function updateCartUI(){
-  let container=document.getElementById("cartItems");
-  let count=document.getElementById("cartCount");
+  let container=$('cartItems'); if(!container) return;
+  let countSpans = $$('span#cartCount');
   container.innerHTML=''; let total=0;
-  if(cart.length===0){ container.innerHTML="<p>Your cart is empty 🛒</p>"; document.getElementById("cartTotal").innerText=""; count.innerText="0"; return; }
+  if(cart.length===0){
+    container.innerHTML="<p>Your cart is empty 🛒</p>";
+    $('cartTotal') && ($('cartTotal').innerText='');
+    countSpans.forEach(s=>s.innerText='0');
+    return;
+  }
   cart.forEach((item,i)=>{
-    total+=item.price*item.qty;
-    container.innerHTML+=`
+    total += item.price*item.qty;
+    container.innerHTML += `
       <div class="cart-item">
         <span>${item.name}</span>
         <div class="cart-controls">
@@ -118,24 +144,25 @@ function updateCartUI(){
         </div>
         <span>Ksh ${item.price*item.qty}</span>
         <button onclick="removeItem(${i})">❌</button>
-      </div>`;
+      </div>
+    `;
   });
-  document.getElementById("cartTotal").innerText="Total: Ksh "+total;
-  count.innerText=cart.length;
+  $('cartTotal') && ($('cartTotal').innerText = "Total: Ksh " + total);
+  countSpans.forEach(s=>s.innerText=cart.length);
 }
 
-function openCheckout(){ if(cart.length===0){alert("Cart is empty");return;} document.getElementById("checkoutSection").style.display="block"; }
+function openCheckout(){ if(cart.length===0){ alert("Cart is empty"); return; } $('checkoutSection') && ($('checkoutSection').style.display='block'); }
 
 // ─── PLACE ORDER ─────────────────────────────
 function placeOrder(){
-  let name=document.getElementById("customerName").value;
-  let phone=document.getElementById("customerPhone").value;
-  let location=document.getElementById("customerLocation").value;
-  if(!name||!phone){ alert("Fill details"); return; }
+  let name=$('customerName')?.value;
+  let phone=$('customerPhone')?.value;
+  let location=$('customerLocation')?.value || '';
+  if(!name || !phone){ alert("Please fill your details"); return; }
   let orders = Store.getOrders();
   let order = {
     id:'o_'+Date.now(),
-    name:name, phone:phone, location:location,
+    name, phone, location,
     items:[...cart],
     total:cart.reduce((a,b)=>a+b.price*b.qty,0),
     prescription:'',
@@ -143,28 +170,28 @@ function placeOrder(){
     timestamp: Date.now()
   };
   orders.push(order); Store.saveOrders(orders);
-  alert("Order placed!");
+  alert("Order placed successfully!");
   cart=[]; saveCart(); updateCartUI();
-  document.getElementById("checkoutSection").style.display="none";
+  $('checkoutSection') && ($('checkoutSection').style.display='none');
   loadOrdersDashboard();
 }
 
 // ─── WHATSAPP ORDER ─────────────────────────────
 function sendWhatsAppOrder(){
   let message="Hello Maisha Pharmacy, I want to order:\n";
-  cart.forEach(i=>message+=i.name+" x"+i.qty+"\n");
-  let url="https://wa.me/254741593962?text="+encodeURIComponent(message);
-  window.open(url);
+  cart.forEach(i=>message+=`${i.name} x${i.qty}\n`);
+  window.open("https://wa.me/254741593962?text="+encodeURIComponent(message));
 }
 
 // ─── ORDERS DASHBOARD ─────────────────────────────
 function loadOrdersDashboard(){
-  const container=document.getElementById("ordersContainer");
-  container.innerHTML=''; let orders=Store.getOrders().sort((a,b)=>b.timestamp-a.timestamp);
+  let container = $('ordersContainer'); if(!container) return;
+  let orders = Store.getOrders().sort((a,b)=>b.timestamp-a.timestamp);
+  container.innerHTML='';
   if(orders.length===0){ container.innerHTML='<p>No orders yet.</p>'; return; }
   orders.forEach(o=>{
-    let items=o.items.map(i=>i.name+' x'+i.qty).join(', ');
-    container.innerHTML+=`
+    let items = o.items.map(i=>i.name+' x'+i.qty).join(', ');
+    container.innerHTML += `
       <div class="order-card" id="order-${o.id}">
         <p><strong>${o.name}</strong> | ${o.phone} | ${o.location}</p>
         <p>🛒 ${items}</p>
@@ -179,10 +206,10 @@ function loadOrdersDashboard(){
 
 function toggleOrderStatus(orderId){
   let orders=Store.getOrders();
-  let idx=orders.findIndex(o=>o.id===orderId); if(idx===-1)return;
+  let idx = orders.findIndex(o=>o.id===orderId); if(idx===-1) return;
   orders[idx].status = orders[idx].status==='Pending'?'Completed':'Pending';
   Store.saveOrders(orders);
-  document.getElementById(`status-${orderId}`).innerText = orders[idx].status;
+  $(`status-${orderId}`) && ($(`status-${orderId}`).innerText=orders[idx].status);
 }
 
 // ─── GALLERY ─────────────────────────────
@@ -221,4 +248,5 @@ function setupPrescriptionPreview(){
       preview.innerHTML = `<p>📄 ${file.name}</p>`;
     } else preview.innerHTML = '';
   });
-}
+                     }
+  
