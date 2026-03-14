@@ -1,3 +1,5 @@
+/* ===== MAISHA PHARMACY — script.js ===== */
+
 /* ─── UTILITY ─────────────────────────────── */
 function $(id){ return document.getElementById(id); }
 function $$(sel){ return document.querySelectorAll(sel); }
@@ -12,7 +14,7 @@ var Store = {
   saveGallery: d => localStorage.setItem('gallery',  JSON.stringify(d)),
 };
 
-/* ─── DEFAULT PRODUCTS ─────────────────────────────── */
+/* ─── DEFAULT PRODUCTS (20 items) ─────────────────────────────── */
 var DEFAULT_PRODUCTS = [
   {id:'p01', name:'Paracetamol 500mg',        category:'Pain Relief',    price:50,  description:'Fast-acting relief for mild to moderate pain and fever. Pack of 24.'},
   {id:'p02', name:'Ibuprofen 400mg',           category:'Pain Relief',    price:85,  description:'Anti-inflammatory for pain, swelling and fever. Pack of 20.'},
@@ -22,7 +24,7 @@ var DEFAULT_PRODUCTS = [
   {id:'p06', name:'Atorvastatin 20mg',         category:'Cardiovascular', price:420, description:'Lowers cholesterol and protects the heart. Pack of 30.'},
   {id:'p07', name:'Salbutamol Inhaler',        category:'Respiratory',    price:650, description:'Relieves bronchospasm and asthma attacks. 200 doses.'},
   {id:'p08', name:'ORS Sachets',               category:'Rehydration',    price:30,  description:'Oral rehydration salts for dehydration. Box of 10.'},
-  {id:'p09', name:'Vitamin C 1000mg',          category:'Vitamins',       price:250, description:'Immune support & antioxidant. 30 effervescent tablets.'},
+  {id:'p09', name:'Vitamin C 1000mg',          category:'Vitamins',       price:250, description:'Immune support and antioxidant. 30 effervescent tablets.'},
   {id:'p10', name:'Multivitamin Tablets',      category:'Vitamins',       price:380, description:'Complete daily nutrition support. Bottle of 60.'},
   {id:'p11', name:'Omeprazole 20mg',           category:'Digestive',      price:200, description:'Acid reflux and ulcer treatment. Pack of 14 capsules.'},
   {id:'p12', name:'Loperamide 2mg',            category:'Digestive',      price:80,  description:'Rapid diarrhoea relief. Pack of 12 capsules.'},
@@ -36,39 +38,42 @@ var DEFAULT_PRODUCTS = [
   {id:'p20', name:'Oral Contraceptives',       category:'Reproductive',   price:120, description:'Daily contraceptive pill. Monthly pack of 28.'},
 ];
 
-/* ─── DEFAULT GALLERY ─────────────────────────────── */
+/* ─── DEFAULT GALLERY (6 images) ─────────────────────────────── */
 var DEFAULT_GALLERY = [
   {id:'g01', url:'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=600&q=80', caption:'Our dispensing counter'},
   {id:'g02', url:'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=600&q=80', caption:'Wide range of medicines'},
   {id:'g03', url:'https://images.unsplash.com/photo-1563213126-a4273aed2016?w=600&q=80',    caption:'Pharmacy interior'},
-  {id:'g04', url:'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&q=80', caption:'Health & wellness products'},
+  {id:'g04', url:'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&q=80', caption:'Health and wellness products'},
   {id:'g05', url:'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&q=80', caption:'Our professional team'},
-  {id:'g06', url:'https://images.unsplash.com/photo-1550572017-edd951b55104?w=600&q=80',    caption:'Vitamins & supplements'},
+  {id:'g06', url:'https://images.unsplash.com/photo-1550572017-edd951b55104?w=600&q=80',    caption:'Vitamins and supplements'},
 ];
 
 /* ─── CART ─────────────────────────────── */
 let cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
 /* ─── TOAST ─────────────────────────────── */
-function showToast(msg, duration = 2800) {
+function showToast(msg, duration) {
+  duration = duration || 2800;
   let existing = document.querySelector('.toast');
   if (existing) existing.remove();
   let t = document.createElement('div');
   t.className = 'toast';
   t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(() => {
+  setTimeout(function() {
     t.style.opacity = '0';
     t.style.transform = 'translateY(10px)';
     t.style.transition = 'all 0.3s';
-    setTimeout(() => t.remove(), 320);
+    setTimeout(function() { t.remove(); }, 320);
   }, duration);
 }
 
-/* ─── INIT ─────────────────────────────── */
+/* ─── INIT — always overwrite to guarantee full data ─────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function () {
-  if (Store.getProducts().length === 0) Store.saveProducts(DEFAULT_PRODUCTS);
-  if (Store.getGallery().length  === 0) Store.saveGallery(DEFAULT_GALLERY);
+
+  /* Always save full default data so GitHub Pages always shows everything */
+  Store.saveProducts(DEFAULT_PRODUCTS);
+  Store.saveGallery(DEFAULT_GALLERY);
 
   buildCategoryFilter();
   displayProducts('All');
@@ -83,13 +88,16 @@ function buildCategoryFilter() {
   let container = $('categoryFilter');
   if (!container) return;
   container.innerHTML = '';
-  let categories = ['All', ...new Set(Store.getProducts().map(p => p.category))];
-  categories.forEach((cat, i) => {
+  let categories = ['All'];
+  Store.getProducts().forEach(function(p) {
+    if (categories.indexOf(p.category) === -1) categories.push(p.category);
+  });
+  categories.forEach(function(cat, i) {
     let btn = document.createElement('button');
     btn.textContent = cat;
     btn.className = 'cat-btn' + (i === 0 ? ' active' : '');
-    btn.onclick = () => {
-      $$('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.onclick = function() {
+      $$('.cat-btn').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       displayProducts(cat);
     };
@@ -102,36 +110,39 @@ function displayProducts(category) {
   let container = $('productContainer');
   if (!container) return;
   let all  = Store.getProducts();
-  let list = category === 'All' ? all : all.filter(p => p.category === category);
+  let list = category === 'All' ? all : all.filter(function(p) { return p.category === category; });
   container.innerHTML = '';
   if (!list.length) {
     container.innerHTML = '<p style="color:var(--text-soft);padding:1rem 0;">No products found.</p>';
     return;
   }
-  list.forEach((p, idx) => {
+  list.forEach(function(p, idx) {
     let card = document.createElement('div');
     card.className = 'product';
-    card.style.animationDelay = (idx * 0.06) + 's';
-    card.innerHTML = `
-      <div class="product-category">${p.category}</div>
-      <h3>${p.name}</h3>
-      <p class="product-desc">${p.description}</p>
-      <p class="product-price">Ksh ${p.price.toLocaleString()}</p>
-      <button onclick="addToCart('${p.id}','${escHtml(p.name)}',${p.price})">Add to Cart</button>
-    `;
+    card.style.animationDelay = (idx * 0.05) + 's';
+    card.innerHTML =
+      '<div class="product-category">' + p.category + '</div>' +
+      '<h3>' + p.name + '</h3>' +
+      '<p class="product-desc">' + p.description + '</p>' +
+      '<p class="product-price">Ksh ' + p.price.toLocaleString() + '</p>' +
+      '<button onclick="addToCart(\'' + p.id + '\',\'' + escHtml(p.name) + '\',' + p.price + ')">Add to Cart</button>';
     container.appendChild(card);
   });
 }
 
 /* ─── SEARCH ─────────────────────────────── */
 function searchProducts() {
-  let q = ($('searchInput')?.value || '').toLowerCase().trim();
-  if (!q) { displayProducts('All'); buildCategoryFilter(); return; }
-  let list = Store.getProducts().filter(p =>
-    p.name.toLowerCase().includes(q) ||
-    p.category.toLowerCase().includes(q) ||
-    p.description.toLowerCase().includes(q)
-  );
+  let q = ($('searchInput') ? $('searchInput').value : '').toLowerCase().trim();
+  if (!q) {
+    buildCategoryFilter();
+    displayProducts('All');
+    return;
+  }
+  let list = Store.getProducts().filter(function(p) {
+    return p.name.toLowerCase().indexOf(q) !== -1 ||
+           p.category.toLowerCase().indexOf(q) !== -1 ||
+           p.description.toLowerCase().indexOf(q) !== -1;
+  });
   let container = $('productContainer');
   if (!container) return;
   container.innerHTML = '';
@@ -139,35 +150,57 @@ function searchProducts() {
     container.innerHTML = '<p style="color:var(--text-soft);padding:1rem 0;">No products matched your search.</p>';
     return;
   }
-  list.forEach((p, idx) => {
+  list.forEach(function(p, idx) {
     let card = document.createElement('div');
     card.className = 'product';
-    card.style.animationDelay = (idx * 0.06) + 's';
-    card.innerHTML = `
-      <div class="product-category">${p.category}</div>
-      <h3>${p.name}</h3>
-      <p class="product-desc">${p.description}</p>
-      <p class="product-price">Ksh ${p.price.toLocaleString()}</p>
-      <button onclick="addToCart('${p.id}','${escHtml(p.name)}',${p.price})">Add to Cart</button>
-    `;
+    card.style.animationDelay = (idx * 0.05) + 's';
+    card.innerHTML =
+      '<div class="product-category">' + p.category + '</div>' +
+      '<h3>' + p.name + '</h3>' +
+      '<p class="product-desc">' + p.description + '</p>' +
+      '<p class="product-price">Ksh ' + p.price.toLocaleString() + '</p>' +
+      '<button onclick="addToCart(\'' + p.id + '\',\'' + escHtml(p.name) + '\',' + p.price + ')">Add to Cart</button>';
     container.appendChild(card);
   });
 }
 
 /* ─── CART FUNCTIONS ─────────────────────────────── */
 function addToCart(id, name, price) {
-  let item = cart.find(i => i.id === id);
-  if (item) item.qty++;
-  else cart.push({ id, name, price, qty: 1 });
+  let item = null;
+  for (let i = 0; i < cart.length; i++) {
+    if (cart[i].id === id) { item = cart[i]; break; }
+  }
+  if (item) { item.qty++; }
+  else { cart.push({ id: id, name: name, price: price, qty: 1 }); }
   saveCart();
   updateCartUI();
-  showToast(`✓ ${name} added to cart`);
+  showToast('✓ ' + name + ' added to cart');
 }
 
-function saveCart() { localStorage.setItem('cart', JSON.stringify(cart)); }
-function increaseQty(i) { cart[i].qty++; saveCart(); updateCartUI(); }
-function decreaseQty(i) { cart[i].qty > 1 ? cart[i].qty-- : cart.splice(i, 1); saveCart(); updateCartUI(); }
-function removeItem(i)  { let n = cart[i].name; cart.splice(i, 1); saveCart(); updateCartUI(); showToast(`Removed ${n} from cart`); }
+function saveCart() {
+  localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+function increaseQty(i) {
+  cart[i].qty++;
+  saveCart();
+  updateCartUI();
+}
+
+function decreaseQty(i) {
+  if (cart[i].qty > 1) { cart[i].qty--; }
+  else { cart.splice(i, 1); }
+  saveCart();
+  updateCartUI();
+}
+
+function removeItem(i) {
+  let n = cart[i].name;
+  cart.splice(i, 1);
+  saveCart();
+  updateCartUI();
+  showToast('Removed ' + n + ' from cart');
+}
 
 function updateCartUI() {
   let container = $('cartItems');
@@ -178,51 +211,61 @@ function updateCartUI() {
   if (!cart.length) {
     container.innerHTML = '<p style="color:var(--text-soft);padding:0.5rem 0;">Your cart is empty.</p>';
     if ($('cartTotal')) $('cartTotal').textContent = '';
-    $$('#cartCount').forEach(s => s.textContent = '0');
+    $$('#cartCount').forEach(function(s) { s.textContent = '0'; });
     return;
   }
 
-  cart.forEach((item, i) => {
+  cart.forEach(function(item, i) {
     total += item.price * item.qty;
     let row = document.createElement('div');
     row.className = 'cart-item';
-    row.innerHTML = `
-      <span>${item.name}</span>
-      <div class="cart-controls">
-        <button onclick="decreaseQty(${i})">−</button>
-        <span>${item.qty}</span>
-        <button onclick="increaseQty(${i})">+</button>
-      </div>
-      <span>Ksh ${(item.price * item.qty).toLocaleString()}</span>
-      <button onclick="removeItem(${i})" title="Remove">✕</button>
-    `;
+    row.innerHTML =
+      '<span>' + item.name + '</span>' +
+      '<div class="cart-controls">' +
+        '<button onclick="decreaseQty(' + i + ')">−</button>' +
+        '<span>' + item.qty + '</span>' +
+        '<button onclick="increaseQty(' + i + ')">+</button>' +
+      '</div>' +
+      '<span>Ksh ' + (item.price * item.qty).toLocaleString() + '</span>' +
+      '<button onclick="removeItem(' + i + ')" title="Remove">✕</button>';
     container.appendChild(row);
   });
 
-  if ($('cartTotal')) $('cartTotal').textContent = 'Total: Ksh ' + total.toLocaleString();
-  $$('#cartCount').forEach(s => s.textContent = cart.reduce((a, b) => a + b.qty, 0));
+  if ($('cartTotal')) {
+    $('cartTotal').textContent = 'Total: Ksh ' + total.toLocaleString();
+  }
+  let totalQty = 0;
+  cart.forEach(function(b) { totalQty += b.qty; });
+  $$('#cartCount').forEach(function(s) { s.textContent = totalQty; });
 }
 
 function openCheckout() {
   if (!cart.length) { showToast('🛒 Your cart is empty'); return; }
   let sec = $('checkoutSection');
-  if (sec) { sec.style.display = 'block'; sec.scrollIntoView({ behavior: 'smooth' }); }
+  if (sec) {
+    sec.style.display = 'block';
+    sec.scrollIntoView({ behavior: 'smooth' });
+  }
 }
 
 /* ─── PLACE ORDER ─────────────────────────────── */
 function placeOrder() {
-  let name     = $('customerName')?.value.trim();
-  let phone    = $('customerPhone')?.value.trim();
-  let location = $('customerLocation')?.value.trim() || '';
-  if (!name || !phone) { showToast('⚠️ Please fill in your name and phone number'); return; }
-
+  let name     = $('customerName')     ? $('customerName').value.trim()     : '';
+  let phone    = $('customerPhone')    ? $('customerPhone').value.trim()    : '';
+  let location = $('customerLocation') ? $('customerLocation').value.trim() : '';
+  if (!name || !phone) {
+    showToast('⚠️ Please fill in your name and phone number');
+    return;
+  }
   let orders = Store.getOrders();
   let order  = {
-    id: 'ORD-' + Date.now(),
-    name, phone, location,
-    items: cart.map(i => ({ ...i })),
-    total: cart.reduce((a, b) => a + b.price * b.qty, 0),
-    status: 'Pending',
+    id:        'ORD-' + Date.now(),
+    name:      name,
+    phone:     phone,
+    location:  location,
+    items:     cart.map(function(i) { return { id:i.id, name:i.name, price:i.price, qty:i.qty }; }),
+    total:     cart.reduce(function(a, b) { return a + b.price * b.qty; }, 0),
+    status:    'Pending',
     timestamp: Date.now()
   };
   orders.push(order);
@@ -239,8 +282,11 @@ function placeOrder() {
 function sendWhatsAppOrder() {
   if (!cart.length) { showToast('🛒 Your cart is empty'); return; }
   let msg = '🌿 *Maisha Pharmacy Order*\n\n';
-  cart.forEach(i => msg += `• ${i.name} × ${i.qty} — Ksh ${(i.price * i.qty).toLocaleString()}\n`);
-  msg += `\n*Total: Ksh ${cart.reduce((a, b) => a + b.price * b.qty, 0).toLocaleString()}*`;
+  cart.forEach(function(i) {
+    msg += '• ' + i.name + ' × ' + i.qty + ' — Ksh ' + (i.price * i.qty).toLocaleString() + '\n';
+  });
+  let total = cart.reduce(function(a, b) { return a + b.price * b.qty; }, 0);
+  msg += '\n*Total: Ksh ' + total.toLocaleString() + '*';
   window.open('https://wa.me/254741593962?text=' + encodeURIComponent(msg), '_blank');
 }
 
@@ -248,36 +294,39 @@ function sendWhatsAppOrder() {
 function loadOrdersDashboard() {
   let container = $('ordersContainer');
   if (!container) return;
-  let orders = Store.getOrders().sort((a, b) => b.timestamp - a.timestamp);
+  let orders = Store.getOrders().sort(function(a, b) { return b.timestamp - a.timestamp; });
   container.innerHTML = '';
   if (!orders.length) {
     container.innerHTML = '<p style="color:var(--text-soft);">No orders yet.</p>';
     return;
   }
-  orders.forEach(o => {
-    let items   = o.items.map(i => `${i.name} ×${i.qty}`).join(', ');
+  orders.forEach(function(o) {
+    let items   = o.items.map(function(i) { return i.name + ' ×' + i.qty; }).join(', ');
     let dateStr = new Date(o.timestamp).toLocaleDateString('en-KE', {
-      day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+      day:'numeric', month:'short', year:'numeric',
+      hour:'2-digit', minute:'2-digit'
     });
     let statusClass = o.status === 'Completed' ? 'status-completed' : 'status-pending';
     let card = document.createElement('div');
     card.className = 'order-card';
     card.id = 'order-' + o.id;
-    card.innerHTML = `
-      <p><strong>${o.name}</strong> · ${o.phone}${o.location ? ' · ' + o.location : ''}</p>
-      <p>🛒 ${items}</p>
-      <p>💰 <strong>Ksh ${o.total.toLocaleString()}</strong></p>
-      <p>Status: <span id="status-${o.id}" class="${statusClass}">${o.status}</span></p>
-      <p style="color:var(--text-soft);font-size:0.78rem;margin-top:4px;">📅 ${dateStr} · ID: ${o.id}</p>
-      <button onclick="toggleOrderStatus('${o.id}')">Toggle Status</button>
-    `;
+    card.innerHTML =
+      '<p><strong>' + o.name + '</strong> · ' + o.phone + (o.location ? ' · ' + o.location : '') + '</p>' +
+      '<p>🛒 ' + items + '</p>' +
+      '<p>💰 <strong>Ksh ' + o.total.toLocaleString() + '</strong></p>' +
+      '<p>Status: <span id="status-' + o.id + '" class="' + statusClass + '">' + o.status + '</span></p>' +
+      '<p style="color:var(--text-soft);font-size:0.78rem;margin-top:4px;">📅 ' + dateStr + ' · ID: ' + o.id + '</p>' +
+      '<button onclick="toggleOrderStatus(\'' + o.id + '\')">Toggle Status</button>';
     container.appendChild(card);
   });
 }
 
 function toggleOrderStatus(orderId) {
   let orders = Store.getOrders();
-  let idx    = orders.findIndex(o => o.id === orderId);
+  let idx    = -1;
+  for (let i = 0; i < orders.length; i++) {
+    if (orders[i].id === orderId) { idx = i; break; }
+  }
   if (idx === -1) return;
   orders[idx].status = orders[idx].status === 'Pending' ? 'Completed' : 'Pending';
   Store.saveOrders(orders);
@@ -293,13 +342,14 @@ function loadGallery() {
   let container = $('galleryContainer');
   if (!container) return;
   container.innerHTML = '';
-  Store.getGallery().forEach(g => {
+  let gallery = Store.getGallery();
+  gallery.forEach(function(g) {
     let img     = document.createElement('img');
     img.src     = g.url;
     img.alt     = g.caption;
     img.title   = g.caption;
     img.loading = 'lazy';
-    img.onclick = () => openLightbox(g.url);
+    img.onclick = function() { openLightbox(g.url); };
     container.appendChild(img);
   });
 }
@@ -311,6 +361,7 @@ function openLightbox(url) {
   let img = $('lightbox-img');
   if (img) img.src = url;
 }
+
 function closeLightbox() {
   let lb = $('lightbox');
   if (lb) lb.style.display = 'none';
@@ -325,14 +376,14 @@ function setupPrescriptionPreview() {
     let preview = $('prescriptionPreview');
     if (!preview) return;
     if (!file) { preview.innerHTML = ''; return; }
-    if (file.type.startsWith('image/')) {
+    if (file.type.indexOf('image/') === 0) {
       let reader = new FileReader();
-      reader.onload = e => {
-        preview.innerHTML = `<img src="${e.target.result}" style="max-width:200px;max-height:180px;margin-top:8px;">`;
+      reader.onload = function(e) {
+        preview.innerHTML = '<img src="' + e.target.result + '" style="max-width:200px;max-height:180px;margin-top:8px;">';
       };
       reader.readAsDataURL(file);
     } else {
-      preview.innerHTML = `<p style="font-size:0.85rem;color:var(--forest);margin-top:6px;">📄 ${escHtml(file.name)}</p>`;
+      preview.innerHTML = '<p style="font-size:0.85rem;color:var(--forest);margin-top:6px;">📄 ' + escHtml(file.name) + '</p>';
     }
   });
 }
@@ -340,7 +391,10 @@ function setupPrescriptionPreview() {
 /* ─── HELPERS ─────────────────────────────── */
 function escHtml(str) {
   return String(str)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#39;');
    }
   
