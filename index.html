@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maisha Pharmacy</title>
+  <title>Maisha Pharmacy — Your Health, Our Priority</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,15 +12,16 @@
   <h2>Maisha Pharmacy</h2>
   <nav>
     <a href="#products">Shop</a>
-    <a href="#cartSection">Cart (<span id="cartCount">0</span>)</a>
+    <a href="#cartSection">Cart&nbsp;(<span id="cartCount">0</span>)</a>
     <a href="#ordersSection">Orders</a>
+    <a href="#gallery">Gallery</a>
   </nav>
   <div class="contactInfo">
-    <a href="tel:+254741593962">+254 741 593 962</a>
+    <a href="tel:+254741593962">📞 +254 741 593 962</a>
+    <a href="https://wa.me/+254741593962" target="_blank">WhatsApp</a>
     <a href="https://www.facebook.com/MaishaPharmacy" target="_blank">Facebook</a>
     <a href="https://www.instagram.com/sallythiga" target="_blank">Instagram</a>
     <a href="https://www.tiktok.com/@bigbri" target="_blank">TikTok</a>
-    <a href="https://wa.me/+254741593962" target="_blank">WhatsApp</a>
   </div>
 </header>
 
@@ -32,18 +33,16 @@
   </div>
 </div>
 
-<!-- PRODUCTS -->
 <section id="products">
   <h2>Medicines</h2>
   <div class="section-rule"></div>
   <div class="search-wrap">
-    <input type="text" id="searchInput" placeholder="Search medicine or category..." onkeyup="searchProducts()">
+    <input type="text" id="searchInput" placeholder="Search medicine or category…" onkeyup="searchProducts()">
   </div>
   <div id="categoryFilter" class="category-filter"></div>
   <div id="productContainer" class="products"></div>
 </section>
 
-<!-- GALLERY -->
 <section id="gallery">
   <h2>Our Gallery</h2>
   <div class="section-rule"></div>
@@ -54,41 +53,53 @@
   </div>
 </section>
 
-<!-- CART -->
 <section id="cartSection">
-  <h2>Your Cart 🛒 (<span id="cartCount">0</span>)</h2>
+  <h2>Your Cart&nbsp;&nbsp;<span id="cartCount">0</span> items</h2>
+  <div class="section-rule"></div>
   <div id="cartItems"></div>
   <h3 id="cartTotal"></h3>
-  <button onclick="openCheckout()">Checkout</button>
+  <button onclick="openCheckout()">Proceed to Checkout →</button>
 </section>
 
-<!-- CHECKOUT -->
 <section id="checkoutSection" style="display:none;">
   <h2>Checkout</h2>
-  <input type="text" id="customerName" placeholder="Full Name">
-  <input type="tel" id="customerPhone" placeholder="Phone Number">
-  <input type="text" id="customerLocation" placeholder="Delivery Location">
-  <input type="file" id="prescriptionFile">
+  <div class="section-rule"></div>
+  <input type="text"  id="customerName"     placeholder="Full Name">
+  <input type="tel"   id="customerPhone"    placeholder="Phone Number">
+  <input type="text"  id="customerLocation" placeholder="Delivery Location">
+  <input type="file"  id="prescriptionFile" accept="image/*,.pdf">
   <div id="prescriptionPreview"></div>
   <br>
   <button onclick="placeOrder()">Place Order</button>
-  <button onclick="sendWhatsAppOrder()">Order via WhatsApp</button>
+  <button onclick="sendWhatsAppOrder()">💬 Order via WhatsApp</button>
 </section>
 
-<!-- ORDERS DASHBOARD -->
 <section id="ordersSection">
   <h2>Orders Dashboard</h2>
+  <div class="section-rule"></div>
   <div id="ordersContainer"></div>
 </section>
 
-<!-- MAP -->
 <div class="map-section">
   <h2>Find Us</h2>
+  <div class="section-rule"></div>
   <div class="map-info">
     <div class="map-details">
-      <p><strong>Maisha Pharmacy</strong><br>Tom Mboya Street, Nairobi CBD<br>Nairobi, Kenya</p>
-      <p><strong>Opening Hours</strong><br>Mon–Fri: 8:00 AM – 9:00 PM<br>Sat: 8:00 AM – 7:00 PM<br>Sun: 10:00 AM – 5:00 PM</p>
-      <p><strong>Contact</strong><br>+254 712 345 678<br>info@maishapharmacy.co.ke</p>
+      <p>
+        <strong>Maisha Pharmacy</strong>
+        Tom Mboya Street, Nairobi CBD<br>Nairobi, Kenya
+      </p>
+      <p>
+        <strong>Opening Hours</strong>
+        Mon–Fri: 8:00 AM – 9:00 PM<br>
+        Sat: 8:00 AM – 7:00 PM<br>
+        Sun: 10:00 AM – 5:00 PM
+      </p>
+      <p>
+        <strong>Contact</strong>
+        +254 741 593 962<br>
+        info@maishapharmacy.co.ke
+      </p>
     </div>
     <iframe
       src="https://maps.google.com/maps?q=tom+mboya+street+nairobi&t=&z=15&ie=UTF8&iwloc=&output=embed"
@@ -104,18 +115,18 @@
       <p>Your trusted health partner since 2010.<br>Quality. Care. Trust.</p>
     </div>
     <div class="footer-links">
-      <p><strong>Quick Links</strong></p>
-      <a href="#products">Shop</a>
-      <a href="#cartSection">Cart</a>
+      <p>Quick Links</p>
+      <a href="#products">Shop Medicines</a>
+      <a href="#cartSection">Your Cart</a>
       <a href="#ordersSection">Orders</a>
       <a href="#gallery">Gallery</a>
     </div>
     <div class="footer-contact">
-      <p><strong>Contact Us</strong></p>
-      <a href="tel:+254741593962">+254741593962</a>
+      <p>Contact Us</p>
+      <a href="tel:+254741593962">📞 +254 741 593 962</a>
       <a href="mailto:info@maishapharmacy.co.ke">✉ info@maishapharmacy.co.ke</a>
-      <a href="https://wa.me/254741593962" target="_blank">WhatsApp</a>
-      <a href="https://www.facebook.com/JeckoBlack" target="_blank">Facebook</a>
+      <a href="https://wa.me/254741593962" target="_blank">💬 WhatsApp</a>
+      <a href="https://www.facebook.com/MaishaPharmacy" target="_blank">Facebook</a>
       <a href="https://www.instagram.com/sallythiga" target="_blank">Instagram</a>
     </div>
   </div>
