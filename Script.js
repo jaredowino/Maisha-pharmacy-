@@ -187,14 +187,38 @@ function toggleOrderStatus(orderId){
 
 // ─── GALLERY ─────────────────────────────
 function loadGallery(){
-  let container=document.getElementById("galleryContainer");
+  let container = $('galleryContainer'); if(!container) return;
   container.innerHTML='';
-  let gallery=Store.getGallery();
+  let gallery = Store.getGallery();
   gallery.forEach(g=>{
-    let img=document.createElement('img'); img.src=g.url; img.alt=g.caption;
-    img.onclick=()=>openLightbox(g.url); container.appendChild(img);
+    let img=document.createElement('img');
+    img.src=g.url; img.alt=g.caption;
+    img.onclick=()=>openLightbox(g.url);
+    container.appendChild(img);
   });
 }
 
-function openLightbox(url){ let lb=document.getElementById('lightbox'); lb.style.display='flex'; document.getElementById('lightbox-img').src=url; }
-function closeLightbox(){ document.getElementById('lightbox').style.display='none'; }
+function openLightbox(url){
+  let lb=$('lightbox'); if(!lb) return;
+  lb.style.display='flex';
+  $('lightbox-img') && ($('lightbox-img').src=url);
+}
+function closeLightbox(){ $('lightbox') && ($('lightbox').style.display='none'); }
+
+// ─── PRESCRIPTION PREVIEW ─────────────────────────────
+function setupPrescriptionPreview(){
+  let prescInput = $('prescriptionFile');
+  if(!prescInput) return;
+  prescInput.addEventListener('change', function(){
+    let file = this.files[0];
+    let preview = $('prescriptionPreview');
+    if(!preview) return;
+    if(file && file.type.indexOf('image/')===0){
+      let reader = new FileReader();
+      reader.onload = e => preview.innerHTML = `<img src="${e.target.result}" style="max-width:200px">`;
+      reader.readAsDataURL(file);
+    } else if(file){
+      preview.innerHTML = `<p>📄 ${file.name}</p>`;
+    } else preview.innerHTML = '';
+  });
+}
